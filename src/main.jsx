@@ -319,7 +319,6 @@ function App() {
     <section className="hero">
       <div className="badge">LOCAL VIDEO QA · SDR 9:16</div>
       <h1>视频参数检查工具</h1>
-      <p>客户只需要浏览器。视频在本地解析和转码，不上传服务器；像暗房里的质检台，安静、准确、不乱碰素材。</p>
     </section>
 
     <section
