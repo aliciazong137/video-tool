@@ -220,6 +220,9 @@ function App() {
     })
     ffmpeg.on('log', ({ type, message }) => {
       const line = message.trim()
+      if (!line) return
+      // 透传到 console，方便 DevTools 直接看 ffmpeg 原始输出
+      console.log('[ffmpeg]', line)
       // 解析 time=HH:MM:SS.xx 算真实进度（比 progress 事件准）
       const m = line.match(/time=(\d+):(\d+):(\d+\.\d+)/)
       if (m) {
@@ -283,6 +286,10 @@ function App() {
         outputName,
       ]
       await ffmpeg.exec(args)
+      // flush 剩余未展示的日志
+      if (pendingLogsRef.current.length > 0) {
+        setLogs(pendingLogsRef.current.slice(-8))
+      }
       const data = await ffmpeg.readFile(outputName)
       const blob = new Blob([data.buffer], { type: 'video/mp4' })
       const url = URL.createObjectURL(blob)
