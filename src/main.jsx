@@ -211,8 +211,8 @@ function App() {
     })
     setStatus('首次加载转码引擎，稍等片刻…')
     await ffmpeg.load({
-      coreURL: await toBlobURL('/ffmpeg-core/ffmpeg-core.js', 'text/javascript'),
-      wasmURL: await toBlobURL('/ffmpeg-core/ffmpeg-core.wasm', 'application/wasm'),
+      coreURL: await toBlobURL('https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js', 'text/javascript'),
+      wasmURL: await toBlobURL('https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm', 'application/wasm'),
     })
     ffmpegRef.current = ffmpeg
     return ffmpeg
