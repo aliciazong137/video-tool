@@ -353,7 +353,6 @@ function App() {
       </div>}
 
       <div className="checks">
-        {checks.length > 0 && <div className="checks-title">[检查结果]</div>}
         {checks.map((c) => <div className={`check ${c.status}`} key={c.name}>
           <span>{c.name}</span>
           <b>{c.value}</b>
@@ -361,7 +360,10 @@ function App() {
         </div>)}
       </div>
 
-      {verdict && <div className={`verdict ${needFix ? 'bad' : 'good'}`}>{verdict}</div>}
+      {verdict && <div className="verdict-wrap">
+        <div className="checks-title">[检查结果]</div>
+        <div className={`verdict ${needFix ? 'bad' : 'good'}`}>{verdict}</div>
+      </div>}
 
       <div className="actions">
         <button disabled={!file || busy} onClick={transcode}>一键转码为合规 MP4</button>
