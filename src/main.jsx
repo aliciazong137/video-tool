@@ -13,7 +13,7 @@ const TARGET = {
   fps: 30,
   fpsMax: 120,
   bitrateMin: 3000,
-  bitrateMax: 40000,
+  bitrateMax: 5000,
   sizeMaxGB: 3,
 }
 
@@ -150,7 +150,7 @@ function buildChecks(info) {
 
   if (info.bitrateKbps >= TARGET.bitrateMin && info.bitrateKbps <= TARGET.bitrateMax) pass('码率', `${info.bitrateKbps}kbps`)
   else if (info.bitrateKbps < TARGET.bitrateMin) warn('码率', `${info.bitrateKbps}kbps`, '偏低')
-  else fail('码率', `${info.bitrateKbps}kbps`, '超出 40Mbps')
+  else fail('码率', `${info.bitrateKbps}kbps`, '超出 5000kbps')
 
   const codecText = String(info.codec || '').toLowerCase()
   if (/avc|h\.264|h264/.test(codecText)) pass('编码', info.codec, 'H.264')
@@ -331,7 +331,7 @@ function App() {
       <label htmlFor="file">
         <span className="plus">+</span>
         <strong>{file ? file.name : '选择或拖入视频文件'}</strong>
-        <em>目标：1080×1920 / 720×1280，≤120fps，≤40Mbps，MP4，SDR</em>
+        <em>目标：1080×1920 / 720×1280，≤120fps，≤5000kbps，MP4，SDR</em>
       </label>
     </section>
 
