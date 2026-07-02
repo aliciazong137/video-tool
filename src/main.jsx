@@ -3,8 +3,6 @@ import { createRoot } from 'react-dom/client'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { fetchFile, toBlobURL } from '@ffmpeg/util'
 import MediaInfoFactory from 'mediainfo.js'
-import ffmpegCoreURL from './vendor/ffmpeg-core.js?url'
-import ffmpegWasmURL from './vendor/ffmpeg-core.wasm?url'
 import './styles.css'
 
 const TARGET = {
@@ -213,8 +211,8 @@ function App() {
     })
     setStatus('首次加载转码引擎，稍等片刻…')
     await ffmpeg.load({
-      coreURL: await toBlobURL(ffmpegCoreURL, 'text/javascript'),
-      wasmURL: await toBlobURL(ffmpegWasmURL, 'application/wasm'),
+      coreURL: await toBlobURL('/ffmpeg-core/ffmpeg-core.js', 'text/javascript'),
+      wasmURL: await toBlobURL('/ffmpeg-core/ffmpeg-core.wasm', 'application/wasm'),
     })
     ffmpegRef.current = ffmpeg
     return ffmpeg
