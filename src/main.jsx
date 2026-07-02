@@ -197,6 +197,12 @@ function App() {
     setChecks([])
     setDownloadUrl('')
     setProgress(0)
+    // MOV 格式提示：应上传 MP4
+    const ext = nextFile.name.split('.').pop().toLowerCase()
+    if (ext === 'mov') {
+      setStatus('请上传 MP4 格式的视频，不支持 MOV 格式')
+      return
+    }
     setStatus('正在读取视频参数…')
     try {
       const nextInfo = await inspectVideo(nextFile)
@@ -347,6 +353,7 @@ function App() {
       </div>}
 
       <div className="checks">
+        {checks.length > 0 && <div className="checks-title">[检查结果]</div>}
         {checks.map((c) => <div className={`check ${c.status}`} key={c.name}>
           <span>{c.name}</span>
           <b>{c.value}</b>
