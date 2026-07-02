@@ -11,8 +11,9 @@ const TARGET = {
   altWidth: 720,
   altHeight: 1280,
   fps: 30,
+  fpsMax: 120,
   bitrateMin: 3000,
-  bitrateMax: 5000,
+  bitrateMax: 40000,
   sizeMaxGB: 3,
 }
 
@@ -144,13 +145,12 @@ function buildChecks(info) {
   if (info.sizeGB < TARGET.sizeMaxGB) pass('文件大小', fmtSize(info.size))
   else fail('文件大小', fmtSize(info.size), '超出 3GB')
 
-  if (info.fps === TARGET.fps) pass('帧率', `${info.fps}fps`)
-  else if (info.fps >= 24 && info.fps <= 60) warn('帧率', `${info.fps}fps`, '建议 30fps')
-  else fail('帧率', `${info.fps}fps`, '差距较大')
+  if (info.fps > 0 && info.fps <= TARGET.fpsMax) pass('帧率', `${info.fps}fps`)
+  else fail('帧率', `${info.fps}fps`, '超出 120fps')
 
   if (info.bitrateKbps >= TARGET.bitrateMin && info.bitrateKbps <= TARGET.bitrateMax) pass('码率', `${info.bitrateKbps}kbps`)
   else if (info.bitrateKbps < TARGET.bitrateMin) warn('码率', `${info.bitrateKbps}kbps`, '偏低')
-  else fail('码率', `${info.bitrateKbps}kbps`, '超出 5000kbps')
+  else fail('码率', `${info.bitrateKbps}kbps`, '超出 40Mbps')
 
   const codecText = String(info.codec || '').toLowerCase()
   if (/avc|h\.264|h264/.test(codecText)) pass('编码', info.codec, 'H.264')
@@ -267,20 +267,24 @@ function App() {
       setStatus('正在读取视频到引擎…')
       await ffmpeg.writeFile(inputName, await fetchFile(file))
 
+      // 根据源文件尺寸自动选择目标分辨率：≥1080 → 1080×1920，否则 → 720×1280
+      const useHD = (info.width >= 1080 || info.height >= 1080)
+      const outW = useHD ? TARGET.width : TARGET.altWidth
+      const outH = useHD ? TARGET.height : TARGET.altHeight
+
       const args = [
         '-i', inputName,
         '-c:v', 'libx264',
-        '-preset', 'veryfast',
-        '-b:v', '4500k',
-        '-maxrate', '5000k',
-        '-bufsize', '9000k',
+        '-preset', 'ultrafast',
+        '-crf', '23',
+        '-maxrate', '40000k',
         '-r', '30',
         '-pix_fmt', 'yuv420p',
         '-color_range', 'tv',
         '-color_trc', 'bt709',
         '-color_primaries', 'bt709',
         '-colorspace', 'bt709',
-        '-vf', `scale=${TARGET.width}:${TARGET.height}:force_original_aspect_ratio=decrease,pad=${TARGET.width}:${TARGET.height}:(ow-iw)/2:(oh-ih)/2:black`,
+        '-vf', `scale=${outW}:${outH}:force_original_aspect_ratio=decrease,pad=${outW}:${outH}:(ow-iw)/2:(oh-ih)/2:black`,
         '-c:a', 'aac',
         '-b:a', '128k',
         outputName,
@@ -321,7 +325,7 @@ function App() {
       <label htmlFor="file">
         <span className="plus">+</span>
         <strong>{file ? file.name : '选择或拖入视频文件'}</strong>
-        <em>目标：1080×1920 / 720×1280，30fps，3000-5000kbps，MP4，SDR</em>
+        <em>目标：1080×1920 / 720×1280，≤120fps，≤40Mbps，MP4，SDR</em>
       </label>
     </section>
 
