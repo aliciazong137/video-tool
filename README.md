@@ -6,14 +6,14 @@
 
 - 上传/拖入视频文件
 - 检查分辨率、文件大小、帧率、码率
-- 标记是否符合：1080×1920 或 720×1280、30fps、3000-5000kbps、3GB 内
-- 浏览器本地一键转码为 MP4 / H.264 / 30fps / 4500kbps / SDR 8-bit
+- 标记是否符合：1080×1920 或 720×1280、≤120fps、3000-5000kbps、3GB 内
+- 浏览器本地一键转码为 MP4 / H.264 / 保持源帧率 / SDR 8-bit
 - 输出文件名默认为：原文件名_转码.mp4
 
 ## 本地开发
 
 ```bash
-npm install --registry https://npm.corp.kuaishou.com/
+npm install
 npm run dev
 ```
 
@@ -25,14 +25,11 @@ npm run build
 
 ## 部署
 
-```bash
-npx -y --registry https://npm.corp.kuaishou.com @codeflicker/frontend-cloud-cli@latest deploy --dir dist
-```
+推送 main 分支即可触发 Vercel 自动部署。
 
 线上地址：
 
-- https://videoqa-tool.frontend-cloud.corp.kuaishou.com
-- 版本地址：https://videoqa-tool-f7ab0c57.frontend-cloud.corp.kuaishou.com
+- https://video-tool-theta-two.vercel.app/
 
 ## 注意
 
