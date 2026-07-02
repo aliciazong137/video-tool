@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { fetchFile } from '@ffmpeg/util'
@@ -174,7 +174,16 @@ function App() {
   const [status, setStatus] = useState('把视频拖进来，浏览器本地完成检查。')
   const [downloadUrl, setDownloadUrl] = useState('')
   const [downloadName, setDownloadName] = useState('')
+  const [logs, setLogs] = useState([])
   const ffmpegRef = useRef(null)
+  // ref 持有最新的 info，让 ffmpeg log 回调能拿到当前视频时长（避免闭包捕获旧值）
+  const infoRef = useRef(null)
+  // log 节流：ffmpeg 高频输出，避免 setState 过多卡 UI
+  const lastLogFlushRef = useRef(0)
+  const pendingLogsRef = useRef([])
+
+  // 同步 info 到 ref，让 ffmpeg log 回调能拿到最新视频时长
+  useEffect(() => { infoRef.current = info }, [info])
 
   const verdict = useMemo(() => {
     if (!info) return null
@@ -209,6 +218,29 @@ function App() {
       setProgress(pct)
       setStatus(`转码中 ${pct}%`)
     })
+    ffmpeg.on('log', ({ type, message }) => {
+      const line = message.trim()
+      // 解析 time=HH:MM:SS.xx 算真实进度（比 progress 事件准）
+      const m = line.match(/time=(\d+):(\d+):(\d+\.\d+)/)
+      if (m) {
+        const sec = (+m[1]) * 3600 + (+m[2]) * 60 + (+m[3])
+        const dur = infoRef.current?.duration
+        if (dur && dur > 0) {
+          const pct = Math.min(99, Math.max(0, Math.round(sec / dur * 100)))
+          setProgress(pct)
+          setStatus(`转码中 ${pct}% · ${line}`)
+        }
+      }
+      // 节流累积日志到 logs state，最多 200ms flush 一次
+      pendingLogsRef.current.push(line)
+      const now = Date.now()
+      if (now - lastLogFlushRef.current > 200) {
+        lastLogFlushRef.current = now
+        const recent = pendingLogsRef.current.slice(-8)
+        pendingLogsRef.current = recent
+        setLogs(recent)
+      }
+    })
     setStatus('首次加载转码引擎，稍等片刻…')
     await ffmpeg.load({
       coreURL: '/ffmpeg-core/ffmpeg-core.js',
@@ -223,10 +255,13 @@ function App() {
     setBusy(true)
     setProgress(0)
     setStatus('准备转码…')
+    setLogs([])
+    pendingLogsRef.current = []
     try {
       const ffmpeg = await ensureFFmpeg()
       const inputName = `input.${(file.name.split('.').pop() || 'mp4').toLowerCase()}`
       const outputName = `${file.name.replace(/\.[^.]+$/, '')}_转码.mp4`
+      setStatus('正在读取视频到引擎…')
       await ffmpeg.writeFile(inputName, await fetchFile(file))
 
       const args = [
@@ -291,6 +326,8 @@ function App() {
         </div>
         <div className="meter"><i style={{ width: `${progress}%` }} /></div>
       </div>
+
+      {logs.length > 0 && <pre className="ffmpeg-log">{logs.join('\n')}</pre>}
 
       {info && <div className="summary">
         <div><span>时长</span><b>{fmtDuration(info.duration)}</b></div>
