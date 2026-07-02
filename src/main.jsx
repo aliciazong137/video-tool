@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { fetchFile, toBlobURL } from '@ffmpeg/util'
+import { fetchFile } from '@ffmpeg/util'
 import MediaInfoFactory from 'mediainfo.js'
 import './styles.css'
 
@@ -211,8 +211,8 @@ function App() {
     })
     setStatus('首次加载转码引擎，稍等片刻…')
     await ffmpeg.load({
-      coreURL: await toBlobURL('/ffmpeg-core/ffmpeg-core.js', 'text/javascript'),
-      wasmURL: await toBlobURL('/ffmpeg-core/ffmpeg-core.wasm', 'application/wasm'),
+      coreURL: '/ffmpeg-core/ffmpeg-core.js',
+      wasmURL: '/ffmpeg-core/ffmpeg-core.wasm',
     })
     ffmpegRef.current = ffmpeg
     return ffmpeg
