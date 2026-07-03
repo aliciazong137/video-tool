@@ -102,6 +102,7 @@ function inspectVideo(file) {
           bitDepth,
           color,
           isHdr,
+          ext: file.name.split('.').pop().toLowerCase(),
         })
       } catch (e) {
         URL.revokeObjectURL(url)
@@ -136,6 +137,12 @@ function buildChecks(info) {
   const pass = (name, value, note = '通过') => checks.push({ name, value, status: 'pass', note })
   const warn = (name, value, note) => checks.push({ name, value, status: 'warn', note })
   const fail = (name, value, note) => { checks.push({ name, value, status: 'fail', note }); needFix = true }
+
+  // 格式检查：MP4 通过，MOV 不通过（可转码修复），其他警告
+  const ext = String(info.ext || '').toLowerCase()
+  if (ext === 'mp4') pass('格式', ext.toUpperCase(), 'MP4')
+  else if (ext === 'mov') fail('格式', ext.toUpperCase(), '应上传 MP4，可转码')
+  else warn('格式', ext.toUpperCase(), '建议 MP4')
 
   const isTargetRes = (info.width === TARGET.width && info.height === TARGET.height) || (info.width === TARGET.altWidth && info.height === TARGET.altHeight)
   if (isTargetRes) pass('分辨率', `${info.width}×${info.height}`)
@@ -197,12 +204,6 @@ function App() {
     setChecks([])
     setDownloadUrl('')
     setProgress(0)
-    // MOV 格式提示：应上传 MP4
-    const ext = nextFile.name.split('.').pop().toLowerCase()
-    if (ext === 'mov') {
-      setStatus('请上传 MP4 格式的视频，不支持 MOV 格式')
-      return
-    }
     setStatus('正在读取视频参数…')
     try {
       const nextInfo = await inspectVideo(nextFile)
